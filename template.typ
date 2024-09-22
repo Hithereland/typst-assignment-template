@@ -97,6 +97,11 @@
   }
 }
 
+#let indent(width, content) = grid(
+  columns: (width, auto),
+  [], content,
+)
+
 // Some math operators
 #let prox = [#math.op("prox")]
 #let proj = [#math.op("proj")]
@@ -271,9 +276,17 @@
         line,
       )).flatten())]
 
+  set underline(
+    stroke: 0.5pt,
+    offset: 0.2em,
+    extent: 0.2em,
+    evade: false,
+  )
 
   set par(first-line-indent: 2em, leading: 1.2em, justify: true)
   show: fix-indent()
 
+  v(30pt)
+  fake-par
   body
 }
