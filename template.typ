@@ -1,11 +1,7 @@
 #import "@preview/numblex:0.1.1": numblex, circle_numbers
 #import "@preview/indenta:0.0.3": fix-indent
 
-#let font = (
-  main: "IBM Plex Serif",
-  mono: "IBM Plex Mono",
-  cjk: "Noto Serif SC",
-)
+#let font = (main: "IBM Plex Serif", mono: "IBM Plex Mono", cjk: "Noto Serif SC")
 
 #let problem_counter = counter("problem")
 #let prob-solution_counter = counter("prob-solution")
@@ -17,14 +13,7 @@
 
 #let prob_block(body) = {
   v(-0.5em)
-  block(
-    fill: rgb(250, 255, 250),
-    width: 100%,
-    inset: 8pt,
-    radius: 4pt,
-    stroke: rgb(31, 199, 31),
-    body,
-  )
+  block(fill: rgb(250, 255, 250), width: 100%, inset: 8pt, radius: 4pt, stroke: rgb(31, 199, 31), body)
 }
 
 #let speci_block(title, body) = {
@@ -44,13 +33,7 @@
     #v(-0.3em)
   ]
   v(-12pt)
-  block(
-    fill: rgb("#fcfdff"),
-    width: 100%,
-    inset: 8pt,
-    radius: (top: 0pt, bottom: 4pt),
-    stroke: rgb("#1f84c7"),
-  )[
+  block(fill: rgb("#fcfdff"), width: 100%, inset: 8pt, radius: (top: 0pt, bottom: 4pt), stroke: rgb("#1f84c7"))[
     // #v(0.5em)
     #body
   ]
@@ -73,7 +56,7 @@
   [
     #set heading(numbering: none)
     #problem_counter.step()
-    === 问题 #problem_counter.display()：#text
+    === 问题 #context[#problem_counter.display()：#text]
   ]
   v(0.5em)
   if body == [] {
@@ -87,7 +70,7 @@
   [
     #set heading(numbering: none)
     #prob-solution_counter.step()
-    === 问题 #prob-solution_counter.display()：#title
+    === 问题 #context[#prob-solution_counter.display()：#title]
   ]
   v(0.5em)
   if body == [] {
@@ -120,7 +103,6 @@
   region: "cn",
   body,
 ) = {
-
   set text(font: (font.main, font.cjk), size: size, lang: lang, region: region)
 
   set heading(numbering: numblex("一、", "1.", "(1)"))
@@ -142,24 +124,23 @@
 
   // Very useful trick, special thanks to @AxiomOfChoices
   // https://github.com/typst/typst/issues/2953#issuecomment-1858823455
-  show heading: current => locate(loc => {
-    let elms = query(
-      selector(heading).before(loc),
-      loc,
-    ) // Finds all previous headings, inclusive
-    if elms.len() > 1 {
-      // If there are at least 2
-      let previous_heading = elms.at(-2) // Take the previous one
-      if ( // If it is close enough to the current one
+  show heading: current => (
+    context {
+      let elms = query(selector(heading).before(here())) // Finds all previous headings, inclusive
+      if elms.len() > 1 {
+        // If there are at least 2
+        let previous_heading = elms.at(-2) // Take the previous one
+        if ( // If it is close enough to the current one
         previous_heading.location().position().y + 35pt > current.location().position().y
       ) {
-        return [#v(-0.3em) #current]
+          return [#v(-0.3em) #current]
+        }
       }
+      return current
     }
-    return current
-  })
-
-
+  )
+  // Comments above are not stated by Nowherechan.
+  // I think this setting is useless, but I still migrate it to typst 0.12
 
   set raw(tab-size: 4)
   show link: it => {
@@ -169,32 +150,32 @@
 
   set list(indent: 6pt)
   set enum(indent: 6pt)
-  set enum(
-    numbering: numblex(numberings: ("1.", "a)", circle_numbers)),
-    full: true,
-  )
+  set enum(numbering: numblex(numberings: ("1.", "a)", circle_numbers)), full: true)
 
   set bibliography(title: [参考], style: "ieee")
 
   set document(title: title, author: author)
   set page(
     paper: "a4",
-    header: locate(loc => if (counter(page).at(loc).first() == 1) {
-      none
-    } else {
+    header: context {
+      if (here().page() == 1) {
+        none
+      } else {
+        [
+          #h(1fr)
+          *#author* | *#title*
+        ]
+      }
+    },
+    footer: context {
+      let page_number = counter(page).at(here()).first()
+      let total_pages = counter(page).final().last()
+      set align(center)
+      set text(size: 8pt)
       [
-        #h(1fr)
-        *#author* | *#title*
-      ]
-    }),
-    footer: locate(loc => {
-      let page_number = counter(page).at(loc).first()
-      let total_pages = counter(page).final(loc).last()
-      align(center)[
-        #set text(size: 8pt)
         #page_number / #total_pages
       ]
-    }),
+    },
   )
 
   // Title and Header
@@ -241,12 +222,7 @@
   show raw: set text(font: (font.mono, font.cjk))
   // Display inline code in a small box
   // that retains the correct baseline.
-  show raw.where(block: false): box.with(
-    fill: luma(240),
-    inset: (x: 3pt, y: 0pt),
-    outset: (y: 3pt),
-    radius: 2pt,
-  )
+  show raw.where(block: false): box.with(fill: luma(240), inset: (x: 3pt, y: 0pt), outset: (y: 3pt), radius: 2pt)
 
   let cjk-markers = regex("[“”‘’．，。、？！：；（）｛｝［］〔〕〖〗《》〈〉「」【】『』─—＿·…\u{30FC}]+")
   show cjk-markers: set text(font: font.cjk)
@@ -261,27 +237,15 @@
   // Thank you @Andrew15-5 for the idea and the code!
   // https://github.com/typst/typst/issues/344#issuecomment-2041231063
   let style-number(number) = text(gray)[#number]
-  show raw.where(block: true): it => block(
-    fill: luma(240),
-    inset: 10pt,
-    radius: 4pt,
-    width: 100%,
-  )[#grid(columns: (1em, 1fr), align: (
-        right,
-        left,
-      ), column-gutter: 0.7em, row-gutter: 0.6em, ..it.lines.enumerate().map((
-        (i, line),
-      ) => (
-        style-number(i + 1),
-        line,
-      )).flatten())]
+  show raw.where(block: true): it => block(fill: luma(240), inset: 10pt, radius: 4pt, width: 100%)[#grid(
+      columns: (1em, 1fr),
+      align: (right, left),
+      column-gutter: 0.7em,
+      row-gutter: 0.6em,
+      ..it.lines.enumerate().map(((i, line)) => (style-number(i + 1), line)).flatten(),
+    )]
 
-  set underline(
-    stroke: 0.5pt,
-    offset: 0.2em,
-    extent: 0.2em,
-    evade: false,
-  )
+  set underline(stroke: 0.5pt, offset: 0.2em, extent: 0.2em, evade: false)
 
   set par(first-line-indent: 2em, leading: 1.2em, justify: true)
   show: fix-indent()
